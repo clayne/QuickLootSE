@@ -6,47 +6,47 @@
 #include "Hooks.h"
 #include "LootMenu.h"
 
-RelocPtr<uintptr_t> ThirdPersonVtbl(0x01649388);
+RelocPtr<uintptr_t> ThirdPersonVtbl(0x01649388);  // 1_5_50
 typedef bool _TPCanProcess(PlayerInputHandler * handler, InputEvent * evn);
 RelocAddr<_TPCanProcess*> TPCanProcess(0x0084FD50);  // 1_5_50
 
-RelocPtr<uintptr_t> FirstPersonVtbl(0x016C3F10);
+RelocPtr<uintptr_t> FirstPersonVtbl(0x016C3F10);  // 1_5_50
 typedef bool _FPCanProcess(PlayerInputHandler * handler, InputEvent * evn);
 RelocAddr<_FPCanProcess*> FPCanProcess(0x00847F50);  // 1_5_50
 
-RelocPtr<uintptr_t> StartActivationAddr(0x0070928F);
+RelocPtr<uintptr_t> StartActivationAddr(0x00708FCF);  // 1_5_50
 typedef void _StartActivationFunc(PlayerCharacter * player);
 RelocAddr<_StartActivationFunc*> StartActivationFunc(0x006AA180);  // 1_5_50
 
-RelocPtr<uintptr_t> ReadyWeaponHandlerAddrVtbl(0x016892B8);
+RelocPtr<uintptr_t> ReadyWeaponHandlerAddrVtbl(0x016892B8);  // 1_5_50
 typedef void ReadyWeaponHandler_t(ReadyWeaponHandler * handler, ButtonEvent* evn, PlayerControls::Data024 * data);
 RelocAddr<ReadyWeaponHandler_t*> ReadyWeaponHandler_(0x00709500);  // 1_5_50
 
-RelocPtr<uintptr_t> TESOBjectCONTvtbl(0x01573980);
+RelocPtr<uintptr_t> TESOBjectCONTvtbl(0x01573990);  // 1_5_50
 typedef bool _GetCrosshairTextCONT(TESObjectCONT * cont, TESObjectREFR *ref, BSString * dst);
 RelocAddr<_GetCrosshairTextCONT*> GetCrosshairTextCONT(0x0022BB80);  // 1_5_50
 
-RelocPtr<uintptr_t> TESOBjectACTIvtbl(0x01571740);
+RelocPtr<uintptr_t> TESOBjectACTIvtbl(0x01571750);  // 1_5_50
 typedef bool _GetCrosshairTextACTI(TESObjectACTI * acti, TESObjectREFR *ref, BSString * dst);
 RelocAddr<_GetCrosshairTextACTI*> GetCrosshairTextACTI(0x00224910);  // 1_5_50
 
-RelocPtr<uintptr_t> TESNPCvtbl(0x015B9D30);
+RelocPtr<uintptr_t> TESNPCvtbl(0x015B9D30);  // 1_5_50
 typedef bool _GetCrosshairTextNPC(TESNPC * npc, TESObjectREFR *ref, BSString * dst);
 RelocAddr<_GetCrosshairTextNPC*> GetCrosshairTextNPC(0x00361830);  // 1_5_50
 
-RelocPtr<uintptr_t> FavoriteHandlervtbl(0x016D2518);
+RelocPtr<uintptr_t> FavoriteHandlervtbl(0x016D2518);  // 1_5_50
 typedef bool _FavoriteCanProcess(MenuHandler::MenuEventHandler * handler, InputEvent * evn);
 RelocAddr<_FavoriteCanProcess*> FavoriteCanProcess(0x008AAE80);  // 1_5_50
 
-RelocPtr<uintptr_t> PlayerRunHandlervtbl(0x01689388);
+RelocPtr<uintptr_t> PlayerRunHandlervtbl(0x01689388);  // 1_5_50
 typedef bool _PlayerRunCanProcess(RunHandler * handler, InputEvent * evn);
 RelocAddr<_PlayerRunCanProcess*> PlayerRunCanProcess(0x0070A9A0);  // 1_5_50
 
-RelocPtr<uintptr_t> PlayerSprintHandlervtbl(0x01689238);
+RelocPtr<uintptr_t> PlayerSprintHandlervtbl(0x01689238);  // 1_5_50
 typedef bool _PlayerSprintCanProcess(SprintHandler * handler, InputEvent * evn);
 RelocAddr<_PlayerSprintCanProcess*> PlayerSprintCanProcess(0x0070AA80);  // 1_5_50
 
-RelocPtr<uintptr_t> TogglePOVHandlervtbl(0x01689478);
+RelocPtr<uintptr_t> TogglePOVHandlervtbl(0x01689478);  // 1_5_50
 typedef bool _TogglePOVProcessButton(TogglePOVHandler * handler, ButtonEvent* evn, PlayerControls::Data024* unk024);
 RelocAddr<_TogglePOVProcessButton*> TogglePOVProcessButton(0x007097F0);  // 1_5_50
 

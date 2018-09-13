@@ -238,7 +238,7 @@ extern "C"
 			return false;
 		}
 
-		if (skse->runtimeVersion != RUNTIME_VERSION_1_5_39)
+		if (skse->runtimeVersion != RUNTIME_VERSION_1_5_50)
 		{
 			_MESSAGE("This plugin is not compatible with this versin of game.");
 			return false;
