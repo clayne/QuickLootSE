@@ -5,6 +5,17 @@
 #include "xbyak/xbyak.h"
 #include "Hooks.h"
 #include "LootMenu.h"
+#include "ScaleformMovie.h"
+#include "ButtonEvent.h"
+
+
+// TODO: REMOVE TEMP DEF
+class ReadyWeaponHandler;
+class RunHandler;
+class SprintHandler;
+class TogglePOVHandler;
+// TODO: REMOVE TEMP DEF
+
 
 RelocPtr<uintptr_t> ThirdPersonVtbl(0x01649388);  // 1_5_50
 typedef bool _TPCanProcess(PlayerInputHandler * handler, InputEvent * evn);
@@ -61,10 +72,10 @@ bool ThirdPersonCanProcess(PlayerInputHandler * handler, InputEvent* evn)
 {
 	bool result = TPCanProcess(handler, evn);
 	BSFixedString s("LootMenu");
-	GFxMovieView * view = NULL;
+	TES::GFxMovieView * view = NULL;
 	MenuManager * mm = MenuManager::GetSingleton();
 	if (mm)
-		view = mm->GetMovieView(&s);
+		view = reinterpret_cast<TES::GFxMovieView*>(mm->GetMovieView(&s));
 
 	if (result && view && view->GetVisible())
 	{
@@ -78,10 +89,10 @@ bool FirstPersonCanProcess(PlayerInputHandler * handler, InputEvent* evn)
 {
 	bool result = FPCanProcess(handler, evn);
 	BSFixedString s("LootMenu");
-	GFxMovieView * view = NULL;
+	TES::GFxMovieView * view = NULL;
 	MenuManager * mm = MenuManager::GetSingleton();
 	if (mm)
-		view = mm->GetMovieView(&s);
+		view = reinterpret_cast<TES::GFxMovieView*>(mm->GetMovieView(&s));
 
 	if (result && view && view->GetVisible())
 	{
@@ -94,10 +105,10 @@ bool FirstPersonCanProcess(PlayerInputHandler * handler, InputEvent* evn)
 void StartActivation(PlayerCharacter * player)
 {
 	BSFixedString s("LootMenu");
-	GFxMovieView * view = NULL;
+	TES::GFxMovieView * view = NULL;
 	MenuManager * mm = MenuManager::GetSingleton();
 	if (mm)
-		view = mm->GetMovieView(&s);
+		view = reinterpret_cast<TES::GFxMovieView*>(mm->GetMovieView(&s));
 		
 	if (view && view->GetVisible())
 	{
@@ -111,13 +122,13 @@ void StartActivation(PlayerCharacter * player)
 	}
 }
 
-void ReadyWeaponProcessButton_Hook(ReadyWeaponHandler * handler, ButtonEvent* evn, PlayerControls::Data024 * data)
+void ReadyWeaponProcessButton_Hook(ReadyWeaponHandler * handler, TES::ButtonEvent* evn, PlayerControls::Data024 * data)
 {
 	BSFixedString s("LootMenu");
-	GFxMovieView * view = NULL;
+	TES::GFxMovieView * view = NULL;
 	MenuManager * mm = MenuManager::GetSingleton();
 	if (mm)
-		view = mm->GetMovieView(&s);
+		view = reinterpret_cast<TES::GFxMovieView*>(mm->GetMovieView(&s));
 
 	static bool bProcessLongTap = false;
 
@@ -185,10 +196,10 @@ bool FavoriteCanProcess_Hook(MenuHandler::MenuEventHandler * handler, InputEvent
 {
 	bool result = FavoriteCanProcess(handler, evn);
 	BSFixedString s("LootMenu");
-	GFxMovieView * view = NULL;
+	TES::GFxMovieView * view = NULL;
 	MenuManager * mm = MenuManager::GetSingleton();
 	if (mm)
-		view = mm->GetMovieView(&s);
+		view = reinterpret_cast<TES::GFxMovieView*>(mm->GetMovieView(&s));
 
 	if (result && view && view->GetVisible())
 	{
@@ -219,10 +230,10 @@ bool PlayerRunCanProcess_Hook(RunHandler * handler, InputEvent* evn)
 {
 	bool result = PlayerRunCanProcess(handler, evn);
 	BSFixedString s("LootMenu");
-	GFxMovieView * view = NULL;
+	TES::GFxMovieView * view = NULL;
 	MenuManager * mm = MenuManager::GetSingleton();
 	if (mm)
-		view = mm->GetMovieView(&s);
+		view = reinterpret_cast<TES::GFxMovieView*>(mm->GetMovieView(&s));
 
 	if (result && view && view->GetVisible())
 	{
@@ -248,10 +259,10 @@ bool PlayerSprintCanProcess_Hook(SprintHandler * handler, InputEvent* evn)
 {
 	bool result = PlayerSprintCanProcess(handler, evn);
 	BSFixedString s("LootMenu");
-	GFxMovieView * view = NULL;
+	TES::GFxMovieView * view = NULL;
 	MenuManager * mm = MenuManager::GetSingleton();
 	if (mm)
-		view = mm->GetMovieView(&s);
+		view = reinterpret_cast<TES::GFxMovieView*>(mm->GetMovieView(&s));
 
 	if (result && view && view->GetVisible())
 	{
@@ -276,10 +287,10 @@ bool PlayerSprintCanProcess_Hook(SprintHandler * handler, InputEvent* evn)
 void TogglePOVProcessButton_Hook(TogglePOVHandler * handler, ButtonEvent* evn, PlayerControls::Data024* unk024)
 {
 	BSFixedString s("LootMenu");
-	GFxMovieView * view = NULL;
+	TES::GFxMovieView * view = NULL;
 	MenuManager * mm = MenuManager::GetSingleton();
 	if (mm)
-		view = mm->GetMovieView(&s);
+		view = reinterpret_cast<TES::GFxMovieView*>(mm->GetMovieView(&s));
 
 	if (view && view->GetVisible())
 	{

@@ -11,6 +11,8 @@
 #include "Hooks.h"
 #include "Settings.h"
 #include "Console.h"
+#include "MenuManager.h"
+#include "ScaleformMovie.h"
 
 IDebugLog				gLog;
 PluginHandle			g_pluginHandle = kPluginHandle_Invalid;
@@ -101,11 +103,11 @@ public:
 		{
 			UIStringHolder *holder = UIStringHolder::GetSingleton();
 			BSFixedString s("LootMenu");
-			MenuManager *mm = MenuManager::GetSingleton();
+			TES::MenuManager *mm = TES::MenuManager::GetSingleton();
 			if (!mm)
 				return kEvent_Continue;
 
-			GFxMovieView * view = mm->GetMovieView(&s);
+			TES::GFxMovieView * view = reinterpret_cast<TES::GFxMovieView*>(mm->GetMovieView(&s));
 			if (!view)
 				return kEvent_Continue;
 
@@ -129,7 +131,7 @@ public:
 			}
 			else if (!evn->opening)
 			{
-				if (mm->GetNumPauseGame() == 0 && view->GetVisible() == false)
+				if (mm->numPauseGame == 0 && view->GetVisible() == false)
 				{
 					view->SetVisible(true);
 
@@ -174,11 +176,11 @@ public:
 					_MESSAGE("    %p %s\n", containerFormID, CALL_MEMBER_FN(containerRef, GetReferenceName)());
 				}
 
-				MenuManager *mm = MenuManager::GetSingleton();
+				TES::MenuManager *mm = TES::MenuManager::GetSingleton();
 				if (!mm)
 					return kEvent_Continue;
 
-				if (mm->GetNumPauseGame() > 0)
+				if (mm->numPauseGame > 0)
 				{
 					loot->m_bUpdateRequest = true;
 				}

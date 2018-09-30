@@ -14,9 +14,6 @@
     <None Include="exports.def" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Console.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="src\Hooks.cpp">
       <Filter>src</Filter>
     </ClCompile>
@@ -33,6 +30,9 @@
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="src\Settings.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Console.cpp">
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
@@ -56,6 +56,12 @@
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="include\Settings.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\MenuManagerWrapper.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\PerkEntryVisitor.h">
       <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>

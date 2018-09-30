@@ -179,6 +179,8 @@
     <ClInclude Include="include\ItemData.h" />
     <ClInclude Include="include\LootMenu.h" />
     <ClInclude Include="include\MenuHandler.h" />
+    <ClInclude Include="include\MenuManagerWrapper.h" />
+    <ClInclude Include="include\PerkEntryVisitor.h" />
     <ClInclude Include="include\Settings.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

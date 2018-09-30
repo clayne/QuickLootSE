@@ -6,6 +6,7 @@
 #include "skse64/GameObjects.h"
 #include "skse64/GameReferences.h"
 #include "skse64/GameExtraData.h"
+#include "InventoryExtraData.h"
 
 static ItemData::Type GetItemType(TESForm *form);
 
@@ -126,19 +127,14 @@ isStolen(false), isEnchanted(false), isQuestItem(false)
 
 
 	// set isEnchanted
-	if (form->IsArmor() || form->IsWeapon())
-	{
-		if (pEntry->extendDataList)
-		{
-			for (ExtendDataList::Iterator it = pEntry->extendDataList->Begin(); !it.End(); ++it)
-			{
+	if (form->IsArmor() || form->IsWeapon()) {
+		if (pEntry->extendDataList) {
+			for (ExtendDataList::Iterator it = pEntry->extendDataList->Begin(); !it.End(); ++it) {
 				BaseExtraList * pExtraDataList = it.Get();
 
-				if (pExtraDataList)
-				{
+				if (pExtraDataList) {
 					ExtraEnchantment* extraEnchant = static_cast<ExtraEnchantment*>(pExtraDataList->GetByType(kExtraData_Enchantment));
-					if (extraEnchant && extraEnchant->enchant)
-					{
+					if (extraEnchant && extraEnchant->enchant) {
 						isEnchanted = true;
 						break;
 					}
@@ -152,17 +148,17 @@ isStolen(false), isEnchanted(false), isQuestItem(false)
 	}
 
 	// set isStolen
-	TESForm *itemOwner = CALL_MEMBER_FN(pEntry, GetOwner)();
+	TESForm *itemOwner = CALL_MEMBER_FN(reinterpret_cast<TES::InventoryEntryData*>(pEntry), GetOwner)();
 	if (!itemOwner)
-		itemOwner = owner; 
+		itemOwner = owner;
 	if (itemOwner)
-		isStolen = !CALL_MEMBER_FN(pEntry, IsOwnedBy2)(*g_thePlayer, itemOwner, true);
+		isStolen = !CALL_MEMBER_FN(reinterpret_cast<TES::InventoryEntryData*>(pEntry), IsOwnedBy2)(*g_thePlayer, itemOwner, true);
 	else
 		isStolen = !CALL_MEMBER_FN(pEntry, IsOwnedBy)(*g_thePlayer, true);
 
 
 	// set isQuestItem
-	isQuestItem = CALL_MEMBER_FN(pEntry, IsQuestItem)();
+	isQuestItem = CALL_MEMBER_FN(reinterpret_cast<TES::InventoryEntryData*>(pEntry), IsQuestItem)();
 
 	// set priority
 	enum Priority
@@ -185,8 +181,7 @@ isStolen(false), isEnchanted(false), isQuestItem(false)
 		Food = Other
 	};
 
-	switch (form->formType)
-	{
+	switch (form->formType) {
 	case FormType::kFormType_Ammo:
 		priority = Ammo;
 		break;
@@ -195,15 +190,15 @@ isStolen(false), isEnchanted(false), isQuestItem(false)
 		break;
 	case FormType::kFormType_Potion:
 	{
-									   AlchemyItem *alchemyItem = static_cast<AlchemyItem *>(form);
-									   if (alchemyItem->IsFood())
-										   priority = Food;
-									   else if (alchemyItem->IsPoison())
-										   priority = Poison;
-									   else
-										   priority = Potion;
+		AlchemyItem *alchemyItem = static_cast<AlchemyItem *>(form);
+		if (alchemyItem->IsFood())
+			priority = Food;
+		else if (alchemyItem->IsPoison())
+			priority = Poison;
+		else
+			priority = Potion;
 	}
-		break;
+	break;
 	case FormType::kFormType_Weapon:
 		priority = (IsEnchanted()) ? EnchantedWeapon : Weapon;
 		break;
@@ -221,8 +216,7 @@ isStolen(false), isEnchanted(false), isQuestItem(false)
 		priority = Key;
 		break;
 	case FormType::kFormType_Misc:
-		switch (type)
-		{
+		switch (type) {
 		case kType_MiscGold:
 			priority = Gold;
 			break;
@@ -244,8 +238,7 @@ isStolen(false), isEnchanted(false), isQuestItem(false)
 
 ItemData::ItemData(const ItemData &rhs) : pEntry(rhs.pEntry), type(rhs.type), priority(rhs.priority), name(rhs.name),
 isStolen(rhs.isStolen), isEnchanted(rhs.isEnchanted), isQuestItem(rhs.isQuestItem)
-{
-}
+{}
 
 ItemData::ItemData(ItemData &&rhs) : pEntry(rhs.pEntry), type(rhs.type), priority(rhs.priority), name(rhs.name),
 isStolen(rhs.isStolen), isEnchanted(rhs.isEnchanted), isQuestItem(rhs.isQuestItem)
@@ -256,10 +249,9 @@ isStolen(rhs.isStolen), isEnchanted(rhs.isEnchanted), isQuestItem(rhs.isQuestIte
 
 ItemData::~ItemData()
 {
-	if (pEntry)
-	{
+	if (pEntry) {
 		pEntry->Delete();
-	}	
+	}
 }
 
 
@@ -271,7 +263,7 @@ const char * ItemData::GetName() const
 
 UInt32 ItemData::GetCount() const
 {
-	return CALL_MEMBER_FN(pEntry, GetCount)();
+	return pEntry->countDelta;
 }
 
 SInt32 ItemData::GetValue() const
@@ -287,10 +279,8 @@ float ItemData::GetWeight() const
 
 UInt32 ItemData::GetPickpocketChance() const
 {
-	if (containerRef->baseForm->formType == kFormType_NPC)
-	{
-		if (!containerRef->IsDead(true) && ((*g_thePlayer)->actorState.flags04 & ActorState::kState_Sneaking) != 0)
-		{
+	if (containerRef->baseForm->formType == kFormType_NPC) {
+		if (!containerRef->IsDead(true) && ((*g_thePlayer)->actorState.flags04 & ActorState::kState_Sneaking) != 0) {
 			Actor * targetActor = (Actor*)containerRef;
 
 			SInt32 itemCount = 1;
@@ -325,11 +315,9 @@ UInt32 ItemData::GetPickpocketChance() const
 				finalResult = 100;
 
 			return finalResult;
-		}
-		else
+		} else
 			return 0;
-	}
-	else
+	} else
 		return 0;
 }
 
@@ -397,8 +385,7 @@ bool operator<(const ItemData &a, const ItemData &b)
 		&CompareByCount
 	};
 
-	for (FnCompare compare : compares)
-	{
+	for (FnCompare compare : compares) {
 		int cmp = compare(a, b);
 		if (cmp == 0)
 			continue;
@@ -417,8 +404,7 @@ static ItemData::Type GetItemTypeWeapon(TESObjectWEAP *weap)
 {
 	ItemData::Type type = ItemData::kType_DefaultWeapon;
 
-	switch (weap->type())
-	{
+	switch (weap->type()) {
 	case TESObjectWEAP::GameData::kType_OneHandSword:
 		type = ItemData::kType_WeaponSword;
 		break;
@@ -436,13 +422,13 @@ static ItemData::Type GetItemTypeWeapon(TESObjectWEAP *weap)
 		break;
 	case TESObjectWEAP::GameData::kType_TwoHandAxe:
 	{
-													  TESForm * kwdWarHammerForm = LookupFormByID(0x06D930);
-													  static BGSKeyword *keywordWarHammer = (BGSKeyword*)kwdWarHammerForm;		// WeapTypeWarhammer
-													  if (weap->keyword.HasKeyword(keywordWarHammer))
-														  type = ItemData::kType_WeaponHammer;
-													  else
-														  type = ItemData::kType_WeaponBattleAxe;
-													  break;
+		TESForm * kwdWarHammerForm = LookupFormByID(0x06D930);
+		static BGSKeyword *keywordWarHammer = (BGSKeyword*)kwdWarHammerForm;		// WeapTypeWarhammer
+		if (weap->keyword.HasKeyword(keywordWarHammer))
+			type = ItemData::kType_WeaponHammer;
+		else
+			type = ItemData::kType_WeaponBattleAxe;
+		break;
 	}
 	case TESObjectWEAP::GameData::kType_Bow:
 		type = ItemData::kType_WeaponBow;
@@ -498,36 +484,28 @@ static ItemData::Type GetItemTypeArmor(TESObjectARMO *armor)
 
 	UInt32 index = 0;
 
-	if (armor->bipedObject.IsLightArmor())
-	{
+	if (armor->bipedObject.data.weightClass == BGSBipedObjectForm::kWeight_Light) {
 		index = 0;
-	}
-	else if (armor->bipedObject.IsHeavyArmor())
-	{
+	} else if (armor->bipedObject.data.weightClass == BGSBipedObjectForm::kWeight_Heavy) {
 		index = 8;
-	}
-	else
-	{
+	} else {
+#define HAS_PARTS(a,p) ((a->bipedObject.data.parts & (p) ) != 0)
+
 		static BGSKeyword *keywordJewelry = DYNAMIC_CAST(LookupFormByID(0x08F95A), TESForm, BGSKeyword);		// VendorItemJewelry
 		static BGSKeyword *keywordClothing = DYNAMIC_CAST(LookupFormByID(0x08F95B), TESForm, BGSKeyword);	// VendorItemClothing
 
-		if (armor->keyword.HasKeyword(keywordClothing))
-		{
+		if (armor->keyword.HasKeyword(keywordClothing)) {
 			index = 16;
-		}
-		else if (armor->keyword.HasKeyword(keywordJewelry))
-		{
-			if (armor->bipedObject.HasPartOf(BGSBipedObjectForm::kPart_Amulet))
+		} else if (armor->keyword.HasKeyword(keywordJewelry)) {
+			if (HAS_PARTS(armor, BGSBipedObjectForm::kPart_Amulet))
 				index = 24;
-			else if (armor->bipedObject.HasPartOf(BGSBipedObjectForm::kPart_Ring))
+			else if (HAS_PARTS(armor, BGSBipedObjectForm::kPart_Ring))
 				index = 25;
-			else if (armor->bipedObject.HasPartOf(BGSBipedObjectForm::kPart_Circlet))
+			else if (HAS_PARTS(armor, BGSBipedObjectForm::kPart_Circlet))
 				index = 26;
 			else
 				index = 27;
-		}
-		else
-		{
+		} else {
 			index = 27;
 		}
 	}
@@ -535,23 +513,21 @@ static ItemData::Type GetItemTypeArmor(TESObjectARMO *armor)
 	if (index >= 24)
 		return types[index];
 
-	if (armor->bipedObject.HasPartOf(BGSBipedObjectForm::kPart_Body | BGSBipedObjectForm::kPart_Unnamed10))
+	if (HAS_PARTS(armor, BGSBipedObjectForm::kPart_Body | BGSBipedObjectForm::kPart_Unnamed10))
 		index += 0;			// body
-	else if (armor->bipedObject.HasPartOf(BGSBipedObjectForm::kPart_Head | BGSBipedObjectForm::kPart_Hair | BGSBipedObjectForm::kPart_LongHair))
-	{
+	else if (HAS_PARTS(armor, BGSBipedObjectForm::kPart_Head | BGSBipedObjectForm::kPart_Hair | BGSBipedObjectForm::kPart_LongHair)) {
 		index += 1;			// head
 		if (armor->formID >= 0x061C8B && armor->formID < 0x061CD7)
 			index += 6;		// mask
-	}
-	else if (armor->bipedObject.HasPartOf(BGSBipedObjectForm::kPart_Hands))
+	} else if (HAS_PARTS(armor, BGSBipedObjectForm::kPart_Hands))
 		index += 2;			// hands
-	else if (armor->bipedObject.HasPartOf(BGSBipedObjectForm::kPart_Forearms))
+	else if (HAS_PARTS(armor, BGSBipedObjectForm::kPart_Forearms))
 		index += 3;			// forarms
-	else if (armor->bipedObject.HasPartOf(BGSBipedObjectForm::kPart_Feet))
+	else if (HAS_PARTS(armor, BGSBipedObjectForm::kPart_Feet))
 		index += 4;			// forarms
-	else if (armor->bipedObject.HasPartOf(BGSBipedObjectForm::kPart_Calves))
+	else if (HAS_PARTS(armor, BGSBipedObjectForm::kPart_Calves))
 		index += 5;			// calves
-	else if (armor->bipedObject.HasPartOf(BGSBipedObjectForm::kPart_Shield))
+	else if (HAS_PARTS(armor, BGSBipedObjectForm::kPart_Shield))
 		index += 6;			// shield
 	else
 		index = 27;
@@ -562,46 +538,207 @@ static ItemData::Type GetItemTypeArmor(TESObjectARMO *armor)
 
 static ItemData::Type GetItemTypePotion(AlchemyItem *potion)
 {
+	enum
+	{
+		kActorValue_Aggression = 0,
+		kActorValue_Confidence,
+		kActorValue_Energy,
+		kActorValue_Morality,
+		kActorValue_Mood,
+		kActorValue_Assistance,
+		kActorValue_Onehanded,
+		kActorValue_Twohanded,
+		kActorValue_Marksman,
+		kActorValue_Block,
+		kActorValue_Smithing,
+		kActorValue_HeavyArmor,
+		kActorValue_LightArmor,
+		kActorValue_Pickpocket,
+		kActorValue_Lockpicking,
+		kActorValue_Sneak,
+		kActorValue_Alchemy,
+		kActorValue_Speechcraft,
+		kActorValue_Alteration,
+		kActorValue_Conjuration,
+		kActorValue_Destruction,
+		kActorValue_Illusion,
+		kActorValue_Restoration,
+		kActorValue_Enchanting,
+		kActorValue_Health,
+		kActorValue_Magicka,
+		kActorValue_Stamina,
+		kActorValue_Healrate,
+		kActorValue_MagickaRate,
+		kActorValue_StaminaRate,
+		kActorValue_SpeedMult,
+		kActorValue_InventoryWeight,
+		kActorValue_CarryWeight,
+		kActorValue_CritChance,
+		kActorValue_MeleeDamage,
+		kActorValue_UnarmedDamage,
+		kActorValue_Mass,
+		kActorValue_VoicePoints,
+		kActorValue_VoiceRate,
+		kActorValue_DamageResist,
+		kActorValue_PoisonResist,
+		kActorValue_FireResist,
+		kActorValue_ElectricResist,
+		kActorValue_FrostResist,
+		kActorValue_MagicResist,
+		kActorValue_DiseaseResist,
+		kActorValue_PerceptionCondition,
+		kActorValue_EnduranceCondition,
+		kActorValue_LeftAttackCondition,
+		kActorValue_RightAttackCondition,
+		kActorValue_LeftMobilityCondition,
+		kActorValue_RightMobilityCondition,
+		kActorValue_BrainCondition,
+		kActorValue_Paralysis,
+		kActorValue_Invisibility,
+		kActorValue_NightEye,
+		kActorValue_DetectLifeRange,
+		kActorValue_WaterBreathing,
+		kActorValue_WaterWalking,
+		kActorValue_IgnoreCrippledLimbs,
+		kActorValue_Fame,
+		kActorValue_Infamy,
+		kActorValue_JumpingBonus,
+		kActorValue_WardPower,
+		kActorValue_RightItemCharge,
+		kActorValue_ArmorPerks,
+		kActorValue_ShieldPerks,
+		kActorValue_WardDeflection,
+		kActorValue_Variable01,
+		kActorValue_Variable02,
+		kActorValue_Variable03,
+		kActorValue_Variable04,
+		kActorValue_Variable05,
+		kActorValue_Variable06,
+		kActorValue_Variable07,
+		kActorValue_Variable08,
+		kActorValue_Variable09,
+		kActorValue_Variable10,
+		kActorValue_BowSpeedBonus,
+		kActorValue_FavorActive,
+		kActorValue_FavorSperDay,
+		kActorValue_FavorSperDaytimer,
+		kActorValue_LeftItemCharge,
+		kActorValue_AbsorbChance,
+		kActorValue_Blindness,
+		kActorValue_WeaponSpeedMult,
+		kActorValue_ShoutRecoveryMult,
+		kActorValue_BowStaggerBonus,
+		kActorValue_Telekinesis,
+		kActorValue_FavorPointsBonus,
+		kActorValue_LastBribedIntimidated,
+		kActorValue_LastFlattered,
+		kActorValue_MovementNoiseMult,
+		kActorValue_BypassVendorStolenCheck,
+		kActorValue_BypassVendorKeywordCheck,
+		kActorValue_WaitingForPlayer,
+		kActorValue_OnehandedMod,
+		kActorValue_TwohandedMod,
+		kActorValue_MarksmanMod,
+		kActorValue_BlockMod,
+		kActorValue_SmithingMod,
+		kActorValue_HeavyArmorMod,
+		kActorValue_LightArmorMod,
+		kActorValue_PickpocketMod,
+		kActorValue_LockpickingMod,
+		kActorValue_SneakMod,
+		kActorValue_AlchemyMod,
+		kActorValue_SpeechcraftMod,
+		kActorValue_AlterationMod,
+		kActorValue_ConjurationMod,
+		kActorValue_DestructionMod,
+		kActorValue_IllusionMod,
+		kActorValue_RestorationMod,
+		kActorValue_EnchantingMod,
+		kActorValue_OnehandedSkillAdvance,
+		kActorValue_TwohandedSkillAdvance,
+		kActorValue_MarksmanSkillAdvance,
+		kActorValue_BlockSkillAdvance,
+		kActorValue_SmithingSkillAdvance,
+		kActorValue_HeavyArmorSkillAdvance,
+		kActorValue_LightArmorSkillAdvance,
+		kActorValue_PickpocketSkillAdvance,
+		kActorValue_LockpickingSkillAdvance,
+		kActorValue_SneakSkillAdvance,
+		kActorValue_AlchemySkillAdvance,
+		kActorValue_SpeechcraftSkillAdvance,
+		kActorValue_AlterationSkillAdvance,
+		kActorValue_ConjurationSkillAdvance,
+		kActorValue_DestructionSkillAdvance,
+		kActorValue_IllusionSkillAdvance,
+		kActorValue_RestorationSkillAdvance,
+		kActorValue_EnchantingSkillAdvance,
+		kActorValue_LeftWeaponSpeedMult,
+		kActorValue_DragonSouls,
+		kActorValue_CombatHealthRegenMult,
+		kActorValue_OnehandedPowerMod,
+		kActorValue_TwohandedPowerMod,
+		kActorValue_MarksmanPowerMod,
+		kActorValue_BlockPowerMod,
+		kActorValue_SmithingPowerMod,
+		kActorValue_HeavyarmorPowerMod,
+		kActorValue_LightarmorPowerMod,
+		kActorValue_PickpocketPowerMod,
+		kActorValue_LockpickingPowerMod,
+		kActorValue_SneakPowerMod,
+		kActorValue_AlchemyPowerMod,
+		kActorValue_SpeechcraftPowerMod,
+		kActorValue_AlterationPowerMod,
+		kActorValue_ConjurationPowerMod,
+		kActorValue_DestructionPowerMod,
+		kActorValue_IllusionPowerMod,
+		kActorValue_RestorationPowerMod,
+		kActorValue_EnchantingPowerMod,
+		kActorValue_Dragonrend,
+		kActorValue_AttackDamageMult,
+		kActorValue_HealRateMult,
+		kActorValue_MagickaRateMult,
+		kActorValue_StaminaRateMult,
+		kActorValue_WerewolfPerks,
+		kActorValue_VampirePerks,
+		kActorValue_GrabActorOffset,
+		kActorValue_Grabbed,
+		kActorValue_Deprecated05,
+		kActorValue_ReflectDamage
+	};
+
 	ItemData::Type type = ItemData::kType_DefaultPotion;
 
-	if (potion->IsFood())
-	{
+	if (potion->IsFood()) {
 		type = ItemData::kType_DefaultFood;
 
 		const static UInt32 ITMPosionUse = 0x000B6435;
 		if (potion->itemData.useSound && potion->itemData.useSound->formID == ITMPosionUse)
 			type = ItemData::kType_FoodWine;
-	}
-	else if (potion->IsPoison())
-	{
+	} else if (potion->IsPoison()) {
 		type = ItemData::kType_PotionPoison;
-	}
-	else
-	{
+	} else {
 		type = ItemData::kType_DefaultPotion;
 
 		MagicItem::EffectItem *pEffect = CALL_MEMBER_FN(potion, GetCostliestEffectItem)(5, false);
-		if (pEffect && pEffect->mgef)
-		{
+		if (pEffect && pEffect->mgef) {
 			UInt32 primaryValue = pEffect->mgef->properties.primaryValue;
-			switch (primaryValue)
-			{
-			case EffectSetting::Properties::kActorValue_Health:
+			switch (primaryValue) {
+			case kActorValue_Health:
 				type = ItemData::kType_PotionHealth;
 				break;
-			case EffectSetting::Properties::kActorValue_Magicka:
+			case kActorValue_Magicka:
 				type = ItemData::kType_PotionMagic;
 				break;
-			case EffectSetting::Properties::kActorValue_Stamina:
+			case kActorValue_Stamina:
 				type = ItemData::kType_PotionStam;
 				break;
-			case EffectSetting::Properties::kActorValue_FireResist:
+			case kActorValue_FireResist:
 				type = ItemData::kType_PotionFire;
 				break;
-			case EffectSetting::Properties::kActorValue_ElectricResist:
+			case kActorValue_ElectricResist:
 				type = ItemData::kType_PotionShock;
 				break;
-			case EffectSetting::Properties::kActorValue_FrostResist:
+			case kActorValue_FrostResist:
 				type = ItemData::kType_PotionFrost;
 				break;
 			}
@@ -697,23 +834,17 @@ static ItemData::Type GetItemTypeSoulGem(TESSoulGem *gem)
 	const static UInt32 DA01SoulGemAzurasStar = 0x063B27;
 	const static UInt32 DA01SoulGemBlackStar = 0x063B29;
 
-	if (gem->formID == DA01SoulGemBlackStar || gem->formID == DA01SoulGemAzurasStar)
-	{
+	if (gem->formID == DA01SoulGemBlackStar || gem->formID == DA01SoulGemAzurasStar) {
 		type = ItemData::kType_SoulGemAzura;
-	}
-	else
-	{
-		if (gem->gemSize < 4)
-		{
+	} else {
+		if (gem->gemSize < 4) {
 			if (gem->soulSize == 0)
 				type = ItemData::kType_SoulGemEmpty;
 			else if (gem->soulSize >= gem->gemSize)
 				type = ItemData::kType_SoulGemFull;
 			else
 				type = ItemData::kType_SoulGemPartial;
-		}
-		else
-		{
+		} else {
 			if (gem->soulSize == 0)
 				type = ItemData::kType_SoulGemGrandEmpty;
 			else if (gem->soulSize >= gem->gemSize)
@@ -736,12 +867,9 @@ const ItemData::Type GetItemTypeBook(TESObjectBOOK *book)
 	BGSKeyword * VendorItemRecipe = DYNAMIC_CAST(LookupFormByID(VendorItemRecipeFormID), TESForm, BGSKeyword);
 	BGSKeyword * VendorItemSpellTome = DYNAMIC_CAST(LookupFormByID(VendorItemSpellTomeFormID), TESForm, BGSKeyword);
 
-	if (book->data.type == 0xFF || book->keyword.HasKeyword(VendorItemRecipe))
-	{
+	if (book->data.type == 0xFF || book->keyword.HasKeyword(VendorItemRecipe)) {
 		type = ItemData::kType_BookNote;
-	}
-	else if (book->keyword.HasKeyword(VendorItemSpellTome))
-	{
+	} else if (book->keyword.HasKeyword(VendorItemSpellTome)) {
 		type = ItemData::kType_BookTome;
 	}
 
@@ -752,8 +880,7 @@ static ItemData::Type GetItemType(TESForm *form)
 {
 	ItemData::Type type = ItemData::kType_None;
 
-	switch (form->formType)
-	{
+	switch (form->formType) {
 	case FormType::kFormType_ScrollItem:
 		type = ItemData::kType_DefaultScroll;
 		break;
