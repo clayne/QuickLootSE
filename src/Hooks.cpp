@@ -9,14 +9,6 @@
 #include "ButtonEvent.h"
 
 
-// TODO: REMOVE TEMP DEF
-class ReadyWeaponHandler;
-class RunHandler;
-class SprintHandler;
-class TogglePOVHandler;
-// TODO: REMOVE TEMP DEF
-
-
 RelocPtr<uintptr_t> ThirdPersonVtbl(0x01649388);  // 1_5_50
 typedef bool _TPCanProcess(PlayerInputHandler * handler, InputEvent * evn);
 RelocAddr<_TPCanProcess*> TPCanProcess(0x0084FD50);  // 1_5_50

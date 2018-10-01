@@ -170,17 +170,21 @@
     <ClCompile Include="src\LootMenu.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\MenuHandler.cpp" />
+    <ClCompile Include="src\ObScript.cpp" />
     <ClCompile Include="src\Settings.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\ButtonEvent.h" />
     <ClInclude Include="include\Console.h" />
     <ClInclude Include="include\GFx.h" />
     <ClInclude Include="include\Hooks.h" />
+    <ClInclude Include="include\InventoryExtraData.h" />
     <ClInclude Include="include\ItemData.h" />
     <ClInclude Include="include\LootMenu.h" />
     <ClInclude Include="include\MenuHandler.h" />
-    <ClInclude Include="include\MenuManagerWrapper.h" />
-    <ClInclude Include="include\PerkEntryVisitor.h" />
+    <ClInclude Include="include\MenuManager.h" />
+    <ClInclude Include="include\ObScript.h" />
+    <ClInclude Include="include\ScaleformMovie.h" />
     <ClInclude Include="include\Settings.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

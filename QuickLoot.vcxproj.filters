@@ -35,6 +35,9 @@
     <ClCompile Include="src\Console.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\ObScript.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Console.h">
@@ -58,10 +61,19 @@
     <ClInclude Include="include\Settings.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="include\MenuManagerWrapper.h">
+    <ClInclude Include="include\MenuManager.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="include\PerkEntryVisitor.h">
+    <ClInclude Include="include\ScaleformMovie.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ObScript.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ButtonEvent.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\InventoryExtraData.h">
       <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>
