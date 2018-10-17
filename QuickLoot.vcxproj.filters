@@ -9,6 +9,45 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
+    <Filter Include="include\RE">
+      <UniqueIdentifier>{0661b52f-958d-41bf-8ec3-ae8e7549b2cc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\RE">
+      <UniqueIdentifier>{1a962531-b594-4d7c-bc8a-7bc3324d5bdc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Ext">
+      <UniqueIdentifier>{698c6134-ff52-49db-a7a0-5f662c07edd0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\RE\Forms">
+      <UniqueIdentifier>{833f7700-51cd-40da-91a7-18abea8b6a2a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\RE\Forms\Character">
+      <UniqueIdentifier>{a324eccb-338b-46e0-b5d1-cefd6f56c74f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\RE\Menus">
+      <UniqueIdentifier>{69fde298-3a7c-4c83-a7be-a891115eb693}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\RE\ExtraData">
+      <UniqueIdentifier>{18b70f6e-65a4-4dfc-a132-29ec243fb4b0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\RE\Scaleform">
+      <UniqueIdentifier>{7bd913fc-5ff2-4079-a7f8-24ed54b102e9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\RE\Animations">
+      <UniqueIdentifier>{bc5a6397-c3cd-4024-819d-7fa54aaaf8ca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\RE\BSDevices">
+      <UniqueIdentifier>{5fe25670-a6b5-4ffd-874e-8624b4a18aa0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\RE\Misc">
+      <UniqueIdentifier>{42cf0526-1f80-43cb-bd7e-21bf73825707}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\RE\Events">
+      <UniqueIdentifier>{5ade7aac-bcff-48c3-a4be-cc57357fa8b4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\RE\NetImmerse">
+      <UniqueIdentifier>{6ef79ed5-a69c-4bf5-8bd7-bc9f1fda6888}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="exports.def" />
@@ -35,8 +74,8 @@
     <ClCompile Include="src\Console.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="src\ObScript.cpp">
-      <Filter>src</Filter>
+    <ClCompile Include="src\RE_ObScript.cpp">
+      <Filter>src\RE</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -61,20 +100,92 @@
     <ClInclude Include="include\Settings.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="include\MenuManager.h">
-      <Filter>include</Filter>
+    <ClInclude Include="include\RE_ObScript.h">
+      <Filter>include\RE</Filter>
     </ClInclude>
-    <ClInclude Include="include\ScaleformMovie.h">
-      <Filter>include</Filter>
+    <ClInclude Include="include\TESContainerExt.h">
+      <Filter>include\Ext</Filter>
     </ClInclude>
-    <ClInclude Include="include\ObScript.h">
-      <Filter>include</Filter>
+    <ClInclude Include="include\InventoryEntryDataExt.h">
+      <Filter>include\Ext</Filter>
     </ClInclude>
-    <ClInclude Include="include\ButtonEvent.h">
-      <Filter>include</Filter>
+    <ClInclude Include="include\RE_Actor.h">
+      <Filter>include\RE\Forms\Character</Filter>
     </ClInclude>
-    <ClInclude Include="include\InventoryExtraData.h">
-      <Filter>include</Filter>
+    <ClInclude Include="include\RE_BGSEntryPointEntry.h">
+      <Filter>include\RE\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="include\RE_BSUIScaleformData.h">
+      <Filter>include\RE\Menus</Filter>
+    </ClInclude>
+    <ClInclude Include="include\RE_ExtraDroppedItemList.h">
+      <Filter>include\RE\ExtraData</Filter>
+    </ClInclude>
+    <ClInclude Include="include\RE_GFxMovieDef.h">
+      <Filter>include\RE\Scaleform</Filter>
+    </ClInclude>
+    <ClInclude Include="include\RE_GFxResource.h">
+      <Filter>include\RE\Scaleform</Filter>
+    </ClInclude>
+    <ClInclude Include="include\RE_GFxStateBag.h">
+      <Filter>include\RE\Scaleform</Filter>
+    </ClInclude>
+    <ClInclude Include="include\RE_IAnimationGraphManagerHolder.h">
+      <Filter>include\RE\Animations</Filter>
+    </ClInclude>
+    <ClInclude Include="include\RE_InputManager.h">
+      <Filter>include\RE\BSDevices</Filter>
+    </ClInclude>
+    <ClInclude Include="include\RE_MenuManager.h">
+      <Filter>include\RE\Menus</Filter>
+    </ClInclude>
+    <ClInclude Include="include\RE_InventoryEntryData.h">
+      <Filter>include\RE\Misc</Filter>
+    </ClInclude>
+    <ClInclude Include="include\RE_ExtraLock.h">
+      <Filter>include\RE\ExtraData</Filter>
+    </ClInclude>
+    <ClInclude Include="include\RE_ButtonEvent.h">
+      <Filter>include\RE\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="include\RE_BGSPerkEntry.h">
+      <Filter>include\RE\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="include\RE_NiControllerManager.h">
+      <Filter>include\RE\NetImmerse</Filter>
+    </ClInclude>
+    <ClInclude Include="include\RE_NiControllerSequence.h">
+      <Filter>include\RE\NetImmerse</Filter>
+    </ClInclude>
+    <ClInclude Include="include\RE_PerkEntryVisitor.h">
+      <Filter>include\RE\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="include\RE_GfxMovieView.h">
+      <Filter>include\RE\Scaleform</Filter>
+    </ClInclude>
+    <ClInclude Include="include\RE_TESBoundObject.h">
+      <Filter>include\RE\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="include\RE_PlayerCharacter.h">
+      <Filter>include\RE\Forms\Character</Filter>
+    </ClInclude>
+    <ClInclude Include="include\RE_TESObjectLIGH.h">
+      <Filter>include\RE\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="include\RE_TESObjectREFR.h">
+      <Filter>include\RE\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="include\RE_UIMessage.h">
+      <Filter>include\RE\Menus</Filter>
+    </ClInclude>
+    <ClInclude Include="include\RE_ReadyWeaponHandler.h">
+      <Filter>include\RE\BSDevices</Filter>
+    </ClInclude>
+    <ClInclude Include="include\RE_PlayerInputHandler.h">
+      <Filter>include\RE\BSDevices</Filter>
+    </ClInclude>
+    <ClInclude Include="include\RE_PlayerControls.h">
+      <Filter>include\RE\BSDevices</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

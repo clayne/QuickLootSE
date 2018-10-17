@@ -3,17 +3,18 @@
 #include "skse64/GameAPI.h"
 #include "skse64/ObScript.h"
 #include "skse64_common/SafeWrite.h"
-#include "ObScript.h"
+
+#include "RE_ObScript.h"
 
 static ObScriptCommand * s_hijackedCommand = nullptr;
 
 static bool Cmd_SetQuickLootVariable_Execute(void * paramInfo, void * scriptData, TESObjectREFR * thisObj, void * containingObj, void * scriptObj, void * locals, double * result, void * opcodeOffsetPtr)
 {
-	TES::ObScriptCommand::ScriptData * scriptDataEx = (TES::ObScriptCommand::ScriptData*)scriptData;
-	TES::ObScriptCommand::StringChunk *strChunk = (TES::ObScriptCommand::StringChunk*)scriptDataEx->GetChunk();
+	RE::ObScriptCommand::ScriptData * scriptDataEx = (RE::ObScriptCommand::ScriptData*)scriptData;
+	RE::ObScriptCommand::StringChunk *strChunk = (RE::ObScriptCommand::StringChunk*)scriptDataEx->GetChunk();
 	std::string name = strChunk->GetString();
 
-	TES::ObScriptCommand::IntegerChunk * intChunk = (TES::ObScriptCommand::IntegerChunk*)strChunk->GetNext();
+	RE::ObScriptCommand::IntegerChunk * intChunk = (RE::ObScriptCommand::IntegerChunk*)strChunk->GetNext();
 	int val = intChunk->GetInteger();
 
 	if (Settings::Set(name.c_str(), val))

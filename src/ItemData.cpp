@@ -6,7 +6,7 @@
 #include "skse64/GameObjects.h"
 #include "skse64/GameReferences.h"
 #include "skse64/GameExtraData.h"
-#include "InventoryExtraData.h"
+#include "RE_InventoryEntryData.h"
 
 static ItemData::Type GetItemType(TESForm *form);
 
@@ -148,17 +148,17 @@ isStolen(false), isEnchanted(false), isQuestItem(false)
 	}
 
 	// set isStolen
-	TESForm *itemOwner = CALL_MEMBER_FN(reinterpret_cast<TES::InventoryEntryData*>(pEntry), GetOwner)();
+	TESForm *itemOwner = CALL_MEMBER_FN(reinterpret_cast<RE::InventoryEntryData*>(pEntry), GetOwner)();
 	if (!itemOwner)
 		itemOwner = owner;
 	if (itemOwner)
-		isStolen = !CALL_MEMBER_FN(reinterpret_cast<TES::InventoryEntryData*>(pEntry), IsOwnedBy2)(*g_thePlayer, itemOwner, true);
+		isStolen = !CALL_MEMBER_FN(reinterpret_cast<RE::InventoryEntryData*>(pEntry), IsOwnedBy2)(*g_thePlayer, itemOwner, true);
 	else
 		isStolen = !CALL_MEMBER_FN(pEntry, IsOwnedBy)(*g_thePlayer, true);
 
 
 	// set isQuestItem
-	isQuestItem = CALL_MEMBER_FN(reinterpret_cast<TES::InventoryEntryData*>(pEntry), IsQuestItem)();
+	isQuestItem = CALL_MEMBER_FN(reinterpret_cast<RE::InventoryEntryData*>(pEntry), IsQuestItem)();
 
 	// set priority
 	enum Priority

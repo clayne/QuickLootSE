@@ -2,10 +2,8 @@
 
 #include "skse64_common/Utilities.h"
 
-namespace TES
+namespace RE
 {
-	class TESObjectREFR;
-
 	// 0C
 	struct ObScriptParam
 	{

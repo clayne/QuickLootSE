@@ -12,6 +12,29 @@
 #include "Hooks.h"
 #include "GFx.h"
 #include "Settings.h"
+#include "RE_ExtraLock.h"
+#include "RE_PerkEntryVisitor.h"
+#include "RE_BGSPerkEntry.h"
+#include "RE_TESObjectLIGH.h"
+#include "RE_GFxMovieDef.h"
+#include "RE_GfxMovieView.h"
+#include "RE_MenuManager.h"
+#include "RE_InputManager.h"
+#include "RE_PlayerCharacter.h"
+#include "RE_IAnimationGraphManagerHolder.h"
+#include "RE_TESObjectREFR.h"
+#include "RE_Actor.h"
+#include "RE_BGSEntryPointEntry.h"
+#include "TESContainerExt.h"
+#include "InventoryEntryDataExt.h"
+#include "RE_ExtraDroppedItemList.h"
+#include "RE_TESBoundObject.h"
+#include "skse64/GameRTTI.h"
+#include "RE_NiControllerManager.h"
+#include "RE_NiControllerSequence.h"
+#include "RE_UIMessage.h"
+#include "RE_BSUIScaleformData.h"
+#include "RE_ButtonEvent.h"
 
 //#include <unordered_map>
 //#include <algorithm>
@@ -34,7 +57,7 @@ RelocAddr<IsInKillmove_t*> IsInKillmove(0x00628430);  // 1_5_50
 typedef bool IsActivationBlocked_t(BaseExtraList *, UInt32 flag);
 RelocAddr<IsActivationBlocked_t*> IsActivationBlocked(0x001260D0);  // 1_5_50
 
-typedef ExtraLock::Data * GetLock_t(TESObjectREFR * source);
+typedef RE::ExtraLock* GetLock_t(TESObjectREFR * source);
 RelocAddr<GetLock_t*> GetLock(0x002A76B0);  // 1_5_50
 
 typedef TESForm* GetExtraOwner_t(BaseExtraList *);
@@ -51,7 +74,7 @@ TESObjectREFR * containerRef = nullptr;
 LootMenu * LootMenu::ms_pSingleton = nullptr;
 SimpleLock LootMenu::ms_lock;
 
-class HasActivateChoiceVisitor : public PerkEntryVisitor
+class HasActivateChoiceVisitor : public RE::PerkEntryVisitor
 {
 public:
 	HasActivateChoiceVisitor(Actor *a_actor, TESObjectREFR *a_target)
@@ -61,7 +84,7 @@ public:
 		m_result = false;
 	}
 
-	virtual UInt32 Visit(BGSPerkEntry *perkEntry) override
+	virtual UInt32 Visit(RE::BGSPerkEntry *perkEntry) override
 	{
 		if (perkEntry->CanProcess(2, &m_actor))
 		{
@@ -111,7 +134,7 @@ protected:
 	bool			m_result;
 };
 
-class CanPickpocketEquippedItemVisitor : public PerkEntryVisitor
+class CanPickpocketEquippedItemVisitor : public RE::PerkEntryVisitor
 {
 public:
 	CanPickpocketEquippedItemVisitor(Actor *a_actor, TESObjectREFR *a_target, TESForm *a_item)
@@ -122,7 +145,7 @@ public:
 		m_result = false;
 	}
 
-	virtual UInt32 Visit(BGSPerkEntry *perkEntry) override
+	virtual UInt32 Visit(RE::BGSPerkEntry *perkEntry) override
 	{
 		if (perkEntry->CanProcess(3, &m_actor))
 		{
@@ -206,11 +229,11 @@ public:
 
 static bool IsLocked(TESObjectREFR * source)
 {
-	ExtraLock::Data* lock = GetLock(source);
+	RE::ExtraLock* lock = GetLock(source);
 	if (!lock)
 		return false;
 
-	return (lock->unk10 & 1) != 0;
+	return (lock->unk08 & 1) != 0;
 }
 
 bool IsValidItem(TESForm *item)
@@ -224,7 +247,7 @@ bool IsValidItem(TESForm *item)
 	if (item->formType == kFormType_Light)
 	{
 		TESObjectLIGH *light = DYNAMIC_CAST(item, TESForm, TESObjectLIGH);
-		if (light && !light->CanBeCarried())
+		if (light && !reinterpret_cast<RE::TESObjectLIGH*>(light)->CanBeCarried())
 			return false;
 	}
 	else
@@ -284,7 +307,7 @@ void LootMenu::Setup()
 {
 	if (view)
 	{
-		GFxMovieDef *def = view->GetMovieDef();
+		RE::GFxMovieDef* def = reinterpret_cast<RE::GFxMovieView*>(view)->GetMovieDef();
 
 		double x = Settings::iPositionX;
 		double y = Settings::iPositionY;
@@ -322,25 +345,27 @@ bool LootMenu::CanOpen(TESObjectREFR *a_ref)
 	if (!a_ref || !a_ref->baseForm)
 		return false;
 
-	MenuManager *mm = MenuManager::GetSingleton();
-	if (mm && mm->GetNumPauseGame() + mm->GetNumStopCrosshairUpdate() > 0)
+	RE::MenuManager *mm = reinterpret_cast<RE::MenuManager*>(MenuManager::GetSingleton());
+	if (mm && mm->numPauseGame + mm->numStopCrosshairUpdate > 0)
 		return false;
 
-	InputManager *mapping = InputManager::GetSingleton();
+	RE::InputManager *mapping = reinterpret_cast<RE::InputManager*>(InputManager::GetSingleton());
 	if (!mapping || !mapping->IsMovementControlsEnabled())
 		return false;
 
 	// player is grabbing / in favor state / in killmove
-	if ((*g_thePlayer)->GetGrabbedRef() || CALL_MEMBER_FN((*g_thePlayer), GetActorInFavorState)() || IsInKillmove((*g_thePlayer)))
+	if (reinterpret_cast<RE::PlayerCharacter*>((*g_thePlayer))->isGrabbing || CALL_MEMBER_FN(reinterpret_cast<RE::PlayerCharacter*>((*g_thePlayer)), GetActorInFavorState)() || IsInKillmove((*g_thePlayer)))
 		return false;
 	
 	bool bAnimationDriven = false;
 	static BSFixedString strAnimationDriven("bAnimationDriven");
-	if ((*g_thePlayer)->animGraphHolder.GetAnimationVariableBool(strAnimationDriven, bAnimationDriven) && bAnimationDriven)
+	if (reinterpret_cast<RE::IAnimationGraphManagerHolder*>(&((*g_thePlayer)->animGraphHolder))->GetAnimationVariableBool(strAnimationDriven, bAnimationDriven) && bAnimationDriven)
 		return false;
 
+#if 0
 	if ((*g_thePlayer)->GetVampireFeed() || (*g_thePlayer)->GetCanibal())
 		return false;
+#endif
 
 	// in combat
 	if (Settings::bDisableInCombat && (*g_thePlayer)->IsInCombat())
@@ -359,7 +384,7 @@ bool LootMenu::CanOpen(TESObjectREFR *a_ref)
 	if (baseForm->formType == kFormType_Activator)
 	{
 		UInt32 refHandle = 0;
-		if (a_ref->extraData.GetAshPileRefHandle(refHandle) && refHandle != (*g_invalidRefHandle))
+		if (CALL_MEMBER_FN(a_ref->extraData, GetAshPileRefHandle_Impl)(refHandle) && refHandle != (*g_invalidRefHandle))
 		{
 			TESObjectREFR * refPtr = nullptr;
 			if (LookupREFRByHandle(&refHandle, &refPtr))
@@ -377,11 +402,11 @@ bool LootMenu::CanOpen(TESObjectREFR *a_ref)
 			containerref = a_ref;
 
 		// pickpocket
-		if (!Settings::bDisablePickpocketing && !a_ref->IsDead(true) && (!a_ref->IsChild()) && ((*g_thePlayer)->actorState.flags04 & ActorState::kState_Sneaking) != 0)
+		if (!Settings::bDisablePickpocketing && !a_ref->IsDead(true) && (!reinterpret_cast<RE::TESObjectREFR*>(a_ref)->IsChild()) && ((*g_thePlayer)->actorState.flags04 & ActorState::kState_Sneaking) != 0)
 		{
 			Actor * actorRef = (Actor*)a_ref;
 
-			if ((actorRef->flags1 & Actor::kFlags_IsPlayerTeammate) == 0 && !actorRef->IsInFaction((TESFaction*)LookupFormByID(0x05C84E)))
+			if ((actorRef->flags1 & Actor::kFlags_IsPlayerTeammate) == 0 && !reinterpret_cast<RE::Actor*>(actorRef)->IsInFaction((TESFaction*)LookupFormByID(0x05C84E)))
 			{
 				if (Unk1Func(actorRef))
 					return false;
@@ -407,10 +432,10 @@ bool LootMenu::CanOpen(TESObjectREFR *a_ref)
 		return false;
 
 	// do not open it which has any activate choice or replaced default.
-	if ((*g_thePlayer)->CanProcessEntryPointPerkEntry(BGSEntryPointPerkEntry::kEntryPoint_Activate))
+	if (reinterpret_cast<RE::Actor*>((*g_thePlayer))->CanProcessEntryPointPerkEntry(RE::BGSEntryPointPerkEntry::kEntryPoint_Activate))
 	{
 		HasActivateChoiceVisitor visitor((*g_thePlayer), a_ref);
-		(*g_thePlayer)->VisitEntryPointPerkEntries(BGSEntryPointPerkEntry::kEntryPoint_Activate, visitor);
+		reinterpret_cast<RE::Actor*>((*g_thePlayer))->VisitEntryPointPerkEntries(RE::BGSEntryPointPerkEntry::kEntryPoint_Activate, visitor);
 		if (visitor.GetResult())
 			return false;
 	}
@@ -431,7 +456,7 @@ void LootMenu::Close()
 	Clear();
 
 	if (view)
-		view->SetVisible(false);
+		reinterpret_cast<RE::GFxMovieView*>(view)->SetVisible(false);
 }
 
 void LootMenu::Update()
@@ -468,7 +493,7 @@ void LootMenu::Update()
 
 	if (containerRef->formType != kFormType_Character)
 	{
-		m_owner = containerRef->GetOwner();
+		m_owner = CALL_MEMBER_FN(containerRef, GetOwner_Impl)();
 	}
 
 	TESContainer *container = DYNAMIC_CAST(containerRef->baseForm, TESForm, TESContainer);
@@ -480,7 +505,8 @@ void LootMenu::Update()
 
 	TESContainer::Entry *entry = nullptr;
 	UInt32 index = 0;
-	while (container->GetContainerItemAt(index++, entry))
+	TESContainerExt containerExt(container);
+	while (containerExt.GetContainerItemAt(index++, entry))
 	{
 		if (!entry)
 			continue;
@@ -563,10 +589,10 @@ void LootMenu::Update()
 						{
 							_MESSAGE("Has worn item formID %x", pEntry->type->formID);
 
-							if ((*g_thePlayer)->CanProcessEntryPointPerkEntry(BGSEntryPointPerkEntry::kEntryPoint_Can_Pickpocket_Equipped_Item))
+							if (reinterpret_cast<RE::Actor*>((*g_thePlayer))->CanProcessEntryPointPerkEntry(RE::BGSEntryPointPerkEntry::kEntryPoint_Can_Pickpocket_Equipped_Item))
 							{
 								CanPickpocketEquippedItemVisitor visitor((*g_thePlayer), containerRef, pEntry->type);
-								(*g_thePlayer)->VisitEntryPointPerkEntries(BGSEntryPointPerkEntry::kEntryPoint_Can_Pickpocket_Equipped_Item, visitor);
+								reinterpret_cast<RE::Actor*>((*g_thePlayer))->VisitEntryPointPerkEntries(RE::BGSEntryPointPerkEntry::kEntryPoint_Can_Pickpocket_Equipped_Item, visitor);
 								if (!visitor.GetResult())
 								{
 									wornEntry = pEntry;
@@ -581,7 +607,7 @@ void LootMenu::Update()
 						}
 					}
 
-					int count = extraList->GetItemCount();
+					int count = CALL_MEMBER_FN(extraList, GetItemCount_Impl)();
 
 					if (count <= 0)
 					{
@@ -598,20 +624,23 @@ void LootMenu::Update()
 					{
 						//_MESSAGE("Has TextDisplayData");
 						pNewEntry = InventoryEntryData::Create(item, count);
-						pNewEntry->AddEntryList(extraList);
+						InventoryEntryDataExt inventoryEntryDataExt(pNewEntry);
+						inventoryEntryDataExt.AddEntryList(extraList);
 					}
 					else if (extraList->HasType(kExtraData_Ownership))
 					{
 						//_MESSAGE("Has Ownership");
 						pNewEntry = InventoryEntryData::Create(item, count);
-						pNewEntry->AddEntryList(extraList);
+						InventoryEntryDataExt inventoryEntryDataExt(pNewEntry);
+						inventoryEntryDataExt.AddEntryList(extraList);
 					}
 					else
 					{
 						if (!defaultEntry)
 							defaultEntry = InventoryEntryData::Create(item, 0);
 
-						defaultEntry->AddEntryList(extraList);
+						InventoryEntryDataExt inventoryEntryDataExt(defaultEntry);
+						inventoryEntryDataExt.AddEntryList(extraList);
 						defaultEntry->countDelta += count;
 					}
 
@@ -654,11 +683,11 @@ void LootMenu::Update()
 	}
 
 
-	ExtraDroppedItemList *exDroppedItemList = static_cast<ExtraDroppedItemList*>(containerRef->extraData.GetByType(kExtraData_DroppedItemList));
+	RE::ExtraDroppedItemList *exDroppedItemList = static_cast<RE::ExtraDroppedItemList*>(containerRef->extraData.GetByType(kExtraData_DroppedItemList));
 	if (exDroppedItemList)
 	{
 		
-		for (DroppedItemListHandle::Iterator it = exDroppedItemList->handles.Begin(); !it.End(); ++it)
+		for (tList<UInt32>::Iterator it = exDroppedItemList->handles.Begin(); !it.End(); ++it)
 		{
 			UInt32 handle = reinterpret_cast<UInt32>(it.Get()); // this is stupid, but whatever
 
@@ -675,7 +704,8 @@ void LootMenu::Update()
 
 			InventoryEntryData * entry = nullptr;
 			entry = InventoryEntryData::Create(refPtr->baseForm, 1);
-			entry->AddEntryList(&refPtr->extraData);
+			InventoryEntryDataExt inventoryEntryDataExt(entry);
+			inventoryEntryDataExt.AddEntryList(&refPtr->extraData);
 			items.push_back(ItemData(entry, m_owner));
 		}
 	}
@@ -767,11 +797,11 @@ void LootMenu::TakeItem()
 		// picks up the weapons that dropped on the ground. 
 
 		TESObjectREFR* refItem = (TESObjectREFR*)((UInt64)extraData - 0x70);
-		(*g_thePlayer)->PickUpItem(refItem, 1, false, true);
+		reinterpret_cast<RE::TESObjectREFR*>((*g_thePlayer))->PickUpItem(refItem, 1, false, true);
 	}
 	else
 	{
-		UInt32 lootMode = TESObjectREFR::kRemoveType_Take;			// take
+		UInt32 lootMode = RE::TESObjectREFR::kRemoveType_Take;			// take
 		UInt32 numItems = item->countDelta;
 
 		InputEventDispatcher * dispatcher = InputEventDispatcher::GetSingleton();
@@ -808,7 +838,7 @@ void LootMenu::TakeItem()
 					Actor * actorRef = (Actor*)containerRef;
 					pickSuccess = CALL_MEMBER_FN((*g_thePlayer), TryToPickpocket)(actorRef, item, numItems, true);
 					CALL_MEMBER_FN((*g_thePlayer), PlayPickupEvent)(item->type, m_owner, containerRef, 3); // 3 = thief
-					lootMode = TESObjectREFR::kRemoveType_Steal;
+					lootMode = RE::TESObjectREFR::kRemoveType_Steal;
 					isPickpocket = true;
 				}
 			}
@@ -818,7 +848,7 @@ void LootMenu::TakeItem()
 			CALL_MEMBER_FN((*g_thePlayer), PlayPickupEvent)(item->type, m_owner, containerRef, 5); // 5 = container
 
 			if (CALL_MEMBER_FN(containerRef, IsOffLimits)())
-				lootMode = TESObjectREFR::kRemoveType_Steal;		// steal
+				lootMode = RE::TESObjectREFR::kRemoveType_Steal;		// steal
 
 			if (!m_bOpenAnim)
 			{
@@ -833,10 +863,10 @@ void LootMenu::TakeItem()
 		}
 
 		UInt32 handle = 0;
-		containerRef->RemoveItem(&handle, item->type, numItems, lootMode, extraData, (*g_thePlayer), 0, 0);
+		reinterpret_cast<RE::TESObjectREFR*>(containerRef)->RemoveItem(&handle, item->type, numItems, lootMode, extraData, (*g_thePlayer), 0, 0);
 
 		// remove arrow projectile 3D.
-		static_cast<TESBoundObject*>(item->type)->OnRemovedFrom(containerRef);
+		static_cast<RE::TESBoundObject*>(item->type)->OnRemovedFrom(containerRef);
 
 		if (containerRef->formType == kFormType_Character)
 		{
@@ -865,7 +895,7 @@ void LootMenu::TakeItem()
 		}
 
 		// plays item pickup sound
-		(*g_thePlayer)->PlaySounds(item->type, true, false); // actor->UnkA3(TESForm *, bool isPickup, bool unk)
+		reinterpret_cast<RE::Actor*>((*g_thePlayer))->PlaySounds(item->type, true, false); // actor->UnkA3(TESForm *, bool isPickup, bool unk)
 	}
 
 	m_bNowTaking = false;
@@ -952,11 +982,11 @@ void LootMenu::TakeAllItems()
 			// picks up the weapons that dropped on the ground. 
 
 			TESObjectREFR* refItem = (TESObjectREFR*)((UInt64)extraData - 0x70);
-			(*g_thePlayer)->PickUpItem(refItem, 1, false, true);
+			reinterpret_cast<RE::TESObjectREFR*>((*g_thePlayer))->PickUpItem(refItem, 1, false, true);
 		}
 		else
 		{
-			UInt32 lootMode = TESObjectREFR::kRemoveType_Take;			// take
+			UInt32 lootMode = RE::TESObjectREFR::kRemoveType_Take;			// take
 			UInt32 numItems = item->countDelta;
 
 			if (containerRef->baseForm->formType == kFormType_NPC)
@@ -977,10 +1007,10 @@ void LootMenu::TakeAllItems()
 			}
 
 			UInt32 handle = 0;
-			containerRef->RemoveItem(&handle, item->type, numItems, lootMode, extraData, (*g_thePlayer), 0, 0);
+			reinterpret_cast<RE::TESObjectREFR*>(containerRef)->RemoveItem(&handle, item->type, numItems, lootMode, extraData, (*g_thePlayer), 0, 0);
 
 			// remove arrow projectile 3D.
-			static_cast<TESBoundObject*>(item->type)->OnRemovedFrom(containerRef);
+			static_cast<RE::TESBoundObject*>(item->type)->OnRemovedFrom(containerRef);
 
 			if (containerRef->formType == kFormType_Character)
 			{
@@ -1001,7 +1031,7 @@ void LootMenu::TakeAllItems()
 			}
 
 			// plays item pickup sound
-			(*g_thePlayer)->PlaySounds(item->type, true, false); // actor->UnkA3(TESForm *, bool isPickup, bool unk)
+			reinterpret_cast<RE::Actor*>((*g_thePlayer))->PlaySounds(item->type, true, false); // actor->UnkA3(TESForm *, bool isPickup, bool unk)
 		}
 
 		m_bNowTaking = false;
@@ -1139,18 +1169,18 @@ void LootMenu::PlayAnimation(const char *fromName, const char *toName)
 	NiNode *niNode = containerRef->GetNiNode();
 	if (!niNode)
 		return;
-	NiTimeController *controller = niNode->GetController();
+	NiTimeController *controller = niNode->m_controller;
 	if (!controller)
 		return;
-	NiControllerManager* manager = ni_cast(controller, NiControllerManager);
+	RE::NiControllerManager* manager = static_cast<RE::NiControllerManager*>(controller);
 	if (!manager)
 		return;
-	NiControllerSequence *fromSeq = manager->GetSequenceByName(fromName);
-	NiControllerSequence *toSeq = manager->GetSequenceByName(toName);
+	RE::NiControllerSequence *fromSeq = CALL_MEMBER_FN(manager, GetSequenceByName)(fromName);
+	RE::NiControllerSequence *toSeq = CALL_MEMBER_FN(manager, GetSequenceByName)(toName);
 	if (!fromSeq || !toSeq)
 		return;
 
-	typedef void Fn_t(TESObjectREFR *, NiControllerManager *, NiControllerSequence *, NiControllerSequence *, bool);
+	typedef void Fn_t(TESObjectREFR *, RE::NiControllerManager *, RE::NiControllerSequence *, RE::NiControllerSequence *, bool);
 	RelocAddr<Fn_t*> fn(0x0018A020);  // 1_5_50
 
 	fn(containerRef, manager, toSeq, fromSeq, false);
@@ -1278,7 +1308,7 @@ void LootMenu::SetScaleformArgs_OpenContainer(std::vector<GFxValue> &args)
 		{
 			TESObjectBOOK *book = static_cast<TESObjectBOOK*>(form);
 			GFxValue isRead;
-			isRead.SetBool(book->IsRead());
+			isRead.SetBool((book->data.flags & TESObjectBOOK::Data::kType_Read) == TESObjectBOOK::Data::kType_Read);
 			item.SetMember("isRead", &isRead);
 		}
 
@@ -1376,7 +1406,7 @@ void LootMenu::OnMenuOpen()
 		if (containerRef->baseForm->formType == kFormType_Activator)
 		{
 			UInt32 refHandle = 0;
-			if (containerRef->extraData.GetAshPileRefHandle(refHandle) && refHandle != (*g_invalidRefHandle))
+			if (CALL_MEMBER_FN(containerRef->extraData, GetAshPileRefHandle_Impl)(refHandle) && refHandle != (*g_invalidRefHandle))
 			{
 				TESObjectREFR * refPtr = nullptr;
 				if (LookupREFRByHandle(&refHandle, &refPtr))
@@ -1395,7 +1425,7 @@ void LootMenu::OnMenuOpen()
 		Setup();
 		Update();
 
-		view->SetVisible(true);
+		reinterpret_cast<RE::GFxMovieView*>(view)->SetVisible(true);
 	}
 
 }
@@ -1410,7 +1440,7 @@ void LootMenu::OnMenuClose()
 
 		Clear();
 
-		view->SetVisible(false);
+		reinterpret_cast<RE::GFxMovieView*>(view)->SetVisible(false);
 
 		RemoveMenuEventHandler(MenuControls::GetSingleton(), this);
 	}
@@ -1454,10 +1484,10 @@ UInt32 LootMenu::ProcessMessage(UIMessage * message)
 		case UIMessage::kMessage_Close:
 			OnMenuClose();
 			break;
-		case UIMessage::kMessage_Scaleform:
-			if (view->GetVisible() && message->objData)
+		case RE::UIMessage::kMessage_Scaleform:
+			if (reinterpret_cast<RE::GFxMovieView*>(view)->GetVisible() && message->objData)
 			{
-				BSUIScaleformData *scaleformData = (BSUIScaleformData *)message->objData;
+				RE::BSUIScaleformData *scaleformData = (RE::BSUIScaleformData *)message->objData;
 
 				GFxEvent *event = scaleformData->event;
 
@@ -1496,7 +1526,7 @@ bool LootMenu::CanProcess(InputEvent *evn)
 	if (!view)
 		return false;
 
-	if (!view->GetVisible())
+	if (!reinterpret_cast<RE::GFxMovieView*>(view)->GetVisible())
 		return false;
 
 	if (evn->eventType != InputEvent::kEventType_Button)
@@ -1523,7 +1553,7 @@ bool LootMenu::CanProcess(InputEvent *evn)
 
 bool LootMenu::ProcessButton(ButtonEvent *evn)
 {
-	if (!evn->IsDown())
+	if (!reinterpret_cast<RE::ButtonEvent*>(evn)->IsDown())
 		return true;
 
 	if (evn->deviceType == kDeviceType_Gamepad)

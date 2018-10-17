@@ -11,8 +11,9 @@
 #include "Hooks.h"
 #include "Settings.h"
 #include "Console.h"
-#include "MenuManager.h"
-#include "ScaleformMovie.h"
+
+#include "RE_MenuManager.h"
+#include "RE_GFxMovieView.h"
 
 IDebugLog				gLog;
 PluginHandle			g_pluginHandle = kPluginHandle_Invalid;
@@ -103,11 +104,11 @@ public:
 		{
 			UIStringHolder *holder = UIStringHolder::GetSingleton();
 			BSFixedString s("LootMenu");
-			TES::MenuManager *mm = TES::MenuManager::GetSingleton();
+			MenuManager *mm = MenuManager::GetSingleton();
 			if (!mm)
 				return kEvent_Continue;
 
-			TES::GFxMovieView * view = reinterpret_cast<TES::GFxMovieView*>(mm->GetMovieView(&s));
+			GFxMovieView * view = mm->GetMovieView(&s);
 			if (!view)
 				return kEvent_Continue;
 
@@ -125,15 +126,15 @@ public:
 					}
 					else if ((menu->flags & 0x1) != 0)
 					{
-						view->SetVisible(false);
+						reinterpret_cast<RE::GFxMovieView*>(view)->SetVisible(false);
 					}
 				}
 			}
 			else if (!evn->opening)
 			{
-				if (mm->numPauseGame == 0 && view->GetVisible() == false)
+				if (reinterpret_cast<RE::MenuManager*>(mm)->numPauseGame == 0 && reinterpret_cast<RE::GFxMovieView*>(view)->GetVisible() == false)
 				{
-					view->SetVisible(true);
+					reinterpret_cast<RE::GFxMovieView*>(view)->SetVisible(true);
 
 					if (loot && loot->m_bUpdateRequest)
 					{
@@ -176,11 +177,11 @@ public:
 					_MESSAGE("    %p %s\n", containerFormID, CALL_MEMBER_FN(containerRef, GetReferenceName)());
 				}
 
-				TES::MenuManager *mm = TES::MenuManager::GetSingleton();
+				MenuManager *mm = MenuManager::GetSingleton();
 				if (!mm)
 					return kEvent_Continue;
 
-				if (mm->numPauseGame > 0)
+				if (reinterpret_cast<RE::MenuManager*>(mm)->numPauseGame > 0)
 				{
 					loot->m_bUpdateRequest = true;
 				}
@@ -213,7 +214,7 @@ void MessageHandler(SKSEMessagingInterface::Message * msg)
 		MenuManager *mm = MenuManager::GetSingleton();
 		mm->MenuOpenCloseEventDispatcher()->AddEventSink(&g_lootMenuEventHandler);
 
-		GetEventDispatcherList()->unk370.AddEventSink(&g_containerChangedEventHandler);
+		(GetEventDispatcherList())->unk370.AddEventSink(&g_containerChangedEventHandler);
 	}
 		break;
 	}

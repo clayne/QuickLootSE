@@ -5,8 +5,15 @@
 #include "xbyak/xbyak.h"
 #include "Hooks.h"
 #include "LootMenu.h"
-#include "ScaleformMovie.h"
-#include "ButtonEvent.h"
+#include "RE_GFxMovieView.h"
+#include "RE_ButtonEvent.h"
+#include "RE_PlayerControls.h"
+#include "RE_ReadyWeaponHandler.h"
+
+
+struct SprintHandler;
+struct RunHandler;
+struct TogglePOVHandler;
 
 
 RelocPtr<uintptr_t> ThirdPersonVtbl(0x01649388);  // 1_5_50
@@ -22,7 +29,7 @@ typedef void _StartActivationFunc(PlayerCharacter * player);
 RelocAddr<_StartActivationFunc*> StartActivationFunc(0x006AA180);  // 1_5_50
 
 RelocPtr<uintptr_t> ReadyWeaponHandlerAddrVtbl(0x016892B8);  // 1_5_50
-typedef void ReadyWeaponHandler_t(ReadyWeaponHandler * handler, ButtonEvent* evn, PlayerControls::Data024 * data);
+typedef void ReadyWeaponHandler_t(RE::ReadyWeaponHandler * handler, ButtonEvent* evn, RE::PlayerControls::Data24 * data);
 RelocAddr<ReadyWeaponHandler_t*> ReadyWeaponHandler_(0x00709500);  // 1_5_50
 
 RelocPtr<uintptr_t> TESOBjectCONTvtbl(0x01573990);  // 1_5_50
@@ -50,7 +57,7 @@ typedef bool _PlayerSprintCanProcess(SprintHandler * handler, InputEvent * evn);
 RelocAddr<_PlayerSprintCanProcess*> PlayerSprintCanProcess(0x0070AA80);  // 1_5_50
 
 RelocPtr<uintptr_t> TogglePOVHandlervtbl(0x01689478);  // 1_5_50
-typedef bool _TogglePOVProcessButton(TogglePOVHandler * handler, ButtonEvent* evn, PlayerControls::Data024* unk024);
+typedef bool _TogglePOVProcessButton(TogglePOVHandler * handler, ButtonEvent* evn, RE::PlayerControls::Data24* unk024);
 RelocAddr<_TogglePOVProcessButton*> TogglePOVProcessButton(0x007097F0);  // 1_5_50
 
 RelocPtr<uintptr_t> retnAddrEx(0x006B08D6);  // 1_5_50
@@ -64,12 +71,12 @@ bool ThirdPersonCanProcess(PlayerInputHandler * handler, InputEvent* evn)
 {
 	bool result = TPCanProcess(handler, evn);
 	BSFixedString s("LootMenu");
-	TES::GFxMovieView * view = NULL;
+	GFxMovieView * view = NULL;
 	MenuManager * mm = MenuManager::GetSingleton();
 	if (mm)
-		view = reinterpret_cast<TES::GFxMovieView*>(mm->GetMovieView(&s));
+		view = mm->GetMovieView(&s);
 
-	if (result && view && view->GetVisible())
+	if (result && view && reinterpret_cast<RE::GFxMovieView*>(view)->GetVisible())
 	{
 		result = (evn->GetControlID() == &InputStringHolder::GetSingleton()->togglePOV);
 	}
@@ -81,12 +88,12 @@ bool FirstPersonCanProcess(PlayerInputHandler * handler, InputEvent* evn)
 {
 	bool result = FPCanProcess(handler, evn);
 	BSFixedString s("LootMenu");
-	TES::GFxMovieView * view = NULL;
+	GFxMovieView * view = NULL;
 	MenuManager * mm = MenuManager::GetSingleton();
 	if (mm)
-		view = reinterpret_cast<TES::GFxMovieView*>(mm->GetMovieView(&s));
+		view = mm->GetMovieView(&s);
 
-	if (result && view && view->GetVisible())
+	if (result && view && reinterpret_cast<RE::GFxMovieView*>(view)->GetVisible())
 	{
 		result = (evn->GetControlID() == &InputStringHolder::GetSingleton()->togglePOV);
 	}
@@ -97,12 +104,12 @@ bool FirstPersonCanProcess(PlayerInputHandler * handler, InputEvent* evn)
 void StartActivation(PlayerCharacter * player)
 {
 	BSFixedString s("LootMenu");
-	TES::GFxMovieView * view = NULL;
+	GFxMovieView * view = NULL;
 	MenuManager * mm = MenuManager::GetSingleton();
 	if (mm)
-		view = reinterpret_cast<TES::GFxMovieView*>(mm->GetMovieView(&s));
+		view = mm->GetMovieView(&s);
 		
-	if (view && view->GetVisible())
+	if (view && reinterpret_cast<RE::GFxMovieView*>(view)->GetVisible())
 	{
 		LootMenu * loot = LootMenu::GetSingleton();
 		if (loot)
@@ -114,23 +121,23 @@ void StartActivation(PlayerCharacter * player)
 	}
 }
 
-void ReadyWeaponProcessButton_Hook(ReadyWeaponHandler * handler, TES::ButtonEvent* evn, PlayerControls::Data024 * data)
+void ReadyWeaponProcessButton_Hook(RE::ReadyWeaponHandler * handler, ButtonEvent* evn, RE::PlayerControls::Data24 * data)
 {
 	BSFixedString s("LootMenu");
-	TES::GFxMovieView * view = NULL;
+	GFxMovieView * view = NULL;
 	MenuManager * mm = MenuManager::GetSingleton();
 	if (mm)
-		view = reinterpret_cast<TES::GFxMovieView*>(mm->GetMovieView(&s));
+		view = mm->GetMovieView(&s);
 
 	static bool bProcessLongTap = false;
 
-	if (!evn->IsDown())
+	if (!reinterpret_cast<RE::ButtonEvent*>(evn)->IsDown())
 	{
 		if (bProcessLongTap && evn->timer > 2.0f)
 		{
 			bProcessLongTap = false;
 
-			if (!view || !view->GetVisible())
+			if (!view || !reinterpret_cast<RE::GFxMovieView*>(view)->GetVisible())
 			{
 				bool disabled = !isDisabled;
 				isDisabled = disabled;
@@ -143,7 +150,7 @@ void ReadyWeaponProcessButton_Hook(ReadyWeaponHandler * handler, TES::ButtonEven
 
 	bProcessLongTap = true;
 
-	if (view && view->GetVisible())
+	if (view && reinterpret_cast<RE::GFxMovieView*>(view)->GetVisible())
 	{
 		StartActivationFunc((*g_thePlayer));
 	}
@@ -188,12 +195,12 @@ bool FavoriteCanProcess_Hook(MenuHandler::MenuEventHandler * handler, InputEvent
 {
 	bool result = FavoriteCanProcess(handler, evn);
 	BSFixedString s("LootMenu");
-	TES::GFxMovieView * view = NULL;
+	GFxMovieView * view = NULL;
 	MenuManager * mm = MenuManager::GetSingleton();
 	if (mm)
-		view = reinterpret_cast<TES::GFxMovieView*>(mm->GetMovieView(&s));
+		view = mm->GetMovieView(&s);
 
-	if (result && view && view->GetVisible())
+	if (result && view && reinterpret_cast<RE::GFxMovieView*>(view)->GetVisible())
 	{
 		if (evn->deviceType == kDeviceType_Gamepad && evn->eventType == InputEvent::kEventType_Button)
 		{
@@ -222,12 +229,12 @@ bool PlayerRunCanProcess_Hook(RunHandler * handler, InputEvent* evn)
 {
 	bool result = PlayerRunCanProcess(handler, evn);
 	BSFixedString s("LootMenu");
-	TES::GFxMovieView * view = NULL;
+	GFxMovieView * view = NULL;
 	MenuManager * mm = MenuManager::GetSingleton();
 	if (mm)
-		view = reinterpret_cast<TES::GFxMovieView*>(mm->GetMovieView(&s));
+		view = mm->GetMovieView(&s);
 
-	if (result && view && view->GetVisible())
+	if (result && view && reinterpret_cast<RE::GFxMovieView*>(view)->GetVisible())
 	{
 		if (evn->deviceType == kDeviceType_Keyboard && evn->eventType == InputEvent::kEventType_Button)
 		{
@@ -251,12 +258,12 @@ bool PlayerSprintCanProcess_Hook(SprintHandler * handler, InputEvent* evn)
 {
 	bool result = PlayerSprintCanProcess(handler, evn);
 	BSFixedString s("LootMenu");
-	TES::GFxMovieView * view = NULL;
+	GFxMovieView * view = NULL;
 	MenuManager * mm = MenuManager::GetSingleton();
 	if (mm)
-		view = reinterpret_cast<TES::GFxMovieView*>(mm->GetMovieView(&s));
+		view = mm->GetMovieView(&s);
 
-	if (result && view && view->GetVisible())
+	if (result && view && reinterpret_cast<RE::GFxMovieView*>(view)->GetVisible())
 	{
 		if (evn->deviceType == kDeviceType_Gamepad && evn->eventType == InputEvent::kEventType_Button)
 		{
@@ -276,15 +283,15 @@ bool PlayerSprintCanProcess_Hook(SprintHandler * handler, InputEvent* evn)
 	return result;
 }
 
-void TogglePOVProcessButton_Hook(TogglePOVHandler * handler, ButtonEvent* evn, PlayerControls::Data024* unk024)
+void TogglePOVProcessButton_Hook(TogglePOVHandler * handler, ButtonEvent* evn, RE::PlayerControls::Data24* unk024)
 {
 	BSFixedString s("LootMenu");
-	TES::GFxMovieView * view = NULL;
+	GFxMovieView * view = NULL;
 	MenuManager * mm = MenuManager::GetSingleton();
 	if (mm)
-		view = reinterpret_cast<TES::GFxMovieView*>(mm->GetMovieView(&s));
+		view = mm->GetMovieView(&s);
 
-	if (view && view->GetVisible())
+	if (view && reinterpret_cast<RE::GFxMovieView*>(view)->GetVisible())
 	{
 		LootMenu * loot = LootMenu::GetSingleton();
 		if (loot)
